@@ -1,0 +1,27 @@
+--set ConfigurationGroupId according to ApplicationId of VTMCropVideoService application.in below line we have set
+--ConfigurationGroupId=12 because  VTMCropVideoService application id is 4 and ConfigurationGroupId is 12
+--Declare @ConfigurationGroupId int=12
+Declare @ConfigurationGroupId int
+Declare @ConfigurationXml xml
+DECLARE @newTag xml;
+
+SELECT   @ConfigurationXml= ConfigurationXml FROM [ConfigurationGroups]  
+             where ConfigurationGroupId=@ConfigurationGroupId
+        
+-- ======Add ffmpegCommandArgumentsPiPCut2 tag========== 
+  
+SET @newTag = N'<ffmpegCommandArgumentsPiPCut2>-i "{PF}" -vf "movie={SF}, crop=640:480:0:0, trim={CF}:, scale=160:120 [vid2]; [in][vid2] overlay=0:0" -ss {CF} -t {cut2} "{DF}"</ffmpegCommandArgumentsPiPCut2>';           
+-- insert new tag from specified variable 
+
+SET @ConfigurationXml.modify('insert sql:variable("@newTag") into (/Configuration)[1]')
+
+Update [ConfigurationGroups] set ConfigurationXml=@ConfigurationXml 
+            where ConfigurationGroupId=@ConfigurationGroupId
+
+-- ======Add ffmpegCommandArgumentsCut2 tag========== 
+
+   SET @newTag = N'<ffmpegCommandArgumentsCut2>-i "{SF}" -ss {CF} -t {cut2} "{DF}</ffmpegCommandArgumentsCut2>'; 
+   SET @ConfigurationXml.modify('insert sql:variable("@newTag") into (/Configuration)[1]')          
+   
+   Update [ConfigurationGroups] set ConfigurationXml=@ConfigurationXml 
+            where ConfigurationGroupId=@ConfigurationGroupId
